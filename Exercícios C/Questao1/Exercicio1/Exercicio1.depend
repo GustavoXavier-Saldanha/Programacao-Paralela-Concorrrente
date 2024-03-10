@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1710085825 source:d:\gust-faculdade\progparalelaconcorrente\exercicio1\main.c
+	<stdio.h>
+	<stdlib.h>
+
