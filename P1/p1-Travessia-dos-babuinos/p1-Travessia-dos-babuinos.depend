@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1714082533 source:d:\gust-faculdade\progparalelaconcorrente\p1\p1-travessia-dos-babuinos\main.c
+	<stdio.h>
+	<stdlib.h>
+	<pthread.h>
+	<unistd.h>
+

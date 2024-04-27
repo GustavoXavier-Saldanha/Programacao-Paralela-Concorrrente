@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1711412610 source:d:\gust-faculdade\progparalelaconcorrente\exercícios c\laboratorios\lab5\exercicio2\main.c
+	<stdio.h>
+	<pthread.h>
+	<semaphore.h>
+
