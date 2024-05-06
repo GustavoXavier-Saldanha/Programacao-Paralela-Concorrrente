@@ -1,25 +1,68 @@
-import java.util.concurrent.Semaphore;
-
 public class Babuinos {
-
-    private static final int INTERVALO_TEMPO = 2; // 1ms em milissegundos
-
-    private static Semaphore mutexCorda = new Semaphore(1);
     private static int QUANTIDADE_BABUINOS = 0;
-    private static int babuinosLesteAtuais = 0;
-    private static int babuinosOesteAtuais = 0;
+
+    static class Travessia {
+        // L --> indo leste
+        // O --> indo oeste
+        // V --> vazio
+        private int quantidadeAtravessando = 0;
+        private char ladoAtual = 'V';
+
+        // leste quer ir pra Oeste
+        public synchronized boolean lesteQuerAtravessar() {
+            if (this.ladoAtual == 'L') {
+                return false;
+            }
+            this.quantidadeAtravessando++;
+            this.ladoAtual = 'O';
+            return true;
+        }
+
+        // oeste quer ir pra Leste
+        public synchronized boolean oesteQuerAtravessar() {
+            if (this.ladoAtual == 'O') {
+                return false;
+            }
+            this.quantidadeAtravessando++;
+            this.ladoAtual = 'L';
+            return true;
+        }
+
+        public synchronized void notificar() {
+            if (this.quantidadeAtravessando == 1) {
+                this.ladoAtual = 'V';
+            }
+            this.quantidadeAtravessando--;
+            notifyAll();
+        }
+
+        public synchronized void dormir() {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
 
     static class GeradorBabuinosLeste extends Thread {
         Babuino babuinoLeste[];
+        Travessia corda;
+
+        public GeradorBabuinosLeste(Travessia corda) {
+            this.corda = corda;
+        }
 
         @Override
         public void run() {
             babuinoLeste = new Babuino[QUANTIDADE_BABUINOS];
             for (int i = 0; i < QUANTIDADE_BABUINOS; i++) {
-                babuinoLeste[i] = new Babuino(i * 2, 'L');
+                babuinoLeste[i] = new Babuino(i * 2, 'L', this.corda);
                 babuinoLeste[i].start();
                 try {
-                    Thread.sleep(INTERVALO_TEMPO);
+                    long intervaloTempo = (long) (Math.random() * 4) + 1;
+                    sleep(intervaloTempo);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -40,15 +83,21 @@ public class Babuinos {
 
     static class GeradorBabuinosOeste extends Thread {
         Babuino babuinoOeste[];
+        Travessia corda;
+
+        public GeradorBabuinosOeste(Travessia corda) {
+            this.corda = corda;
+        }
 
         @Override
         public void run() {
             babuinoOeste = new Babuino[QUANTIDADE_BABUINOS];
             for (int i = 0; i < QUANTIDADE_BABUINOS; i++) {
-                babuinoOeste[i] = new Babuino(i * 2 + 1, 'O');
+                babuinoOeste[i] = new Babuino(i * 2 + 1, 'O', this.corda);
                 babuinoOeste[i].start();
                 try {
-                    Thread.sleep(INTERVALO_TEMPO);
+                    long intervaloTempo = (long) (Math.random() * 4) + 1;
+                    sleep(intervaloTempo);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -70,70 +119,71 @@ public class Babuinos {
     static class Babuino extends Thread {
         private int numero;
         private char direcao;
+        private Travessia corda;
 
-        public Babuino(int numero, char direcao) {
+        public Babuino(int numero, char direcao, Travessia corda) {
             this.numero = numero;
             this.direcao = direcao;
+            this.corda = corda;
         }
 
         @Override
         public void run() {
             try {
+                System.out
+                        .println("Babuino " + numero + " quer atravessar para " + (direcao == 'L' ? "LESTE" : "OESTE"));
+
                 babuinoQuerAtravessar();
-                mutexCorda.acquire();
-                if (direcao == 'L') {
-                    if (babuinosOesteAtuais == 0) {
-                        pegarCorda();
-                        babuinosLesteAtuais++;
-                        soltarCorda();
-                    }
-                } else { // direcao == 'O'
-                    if (babuinosLesteAtuais == 0) {
-                        pegarCorda();
-                        babuinosOesteAtuais++;
-                        soltarCorda();
-                    }
-                }
-                mutexCorda.release();
+
+                pegarCorda();
+
+                // simular tempo para atravessar
+                sleep(1);
+
+                soltarCorda();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
         private void babuinoQuerAtravessar() {
-            System.out.println("Babuino " + numero + " quer atravessar para " + (direcao == 'L' ? "LESTE" : "OESTE"));
+            if (this.direcao == 'L') {
+                while (!this.corda.oesteQuerAtravessar()) {
+                    this.corda.dormir();
+                }
+            } else {
+                while (!this.corda.lesteQuerAtravessar()) {
+                    this.corda.dormir();
+                }
+            }
         }
 
         private void pegarCorda() {
             System.out.println(
                     ">>> BABUINO " + numero + " esta atravessando para " + (direcao == 'L' ? "LESTE" : "OESTE"));
-            try {
-                Thread.sleep(INTERVALO_TEMPO);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+
         }
 
         private void soltarCorda() {
             System.out.println(" BABUINO " + numero + " chegou!");
-            if (direcao == 'L') {
-                babuinosLesteAtuais--;
-            } else {
-                babuinosOesteAtuais--;
-            }
+
+            this.corda.notificar();
         }
     }
 
     public static void main(String[] args) {
+
         QUANTIDADE_BABUINOS = Integer.parseInt(args[0]);
         if (QUANTIDADE_BABUINOS <= 0 || args.length != 1) {
             System.out.println("Quantidade invalida de babuinos. Por favor, insira um número de babuinos valido!");
             System.exit(1);
         }
 
-        System.out.println("Inicio da simulação: " + QUANTIDADE_BABUINOS + " babuinos para cada lado");
-        GeradorBabuinosLeste geradorLeste = new GeradorBabuinosLeste();
-        GeradorBabuinosOeste geradorOeste = new GeradorBabuinosOeste();
+        Travessia corda = new Travessia();
+
+        System.out.println("Inicio da simulacao: " + QUANTIDADE_BABUINOS + " babuinos para cada lado");
+        GeradorBabuinosLeste geradorLeste = new GeradorBabuinosLeste(corda);
+        GeradorBabuinosOeste geradorOeste = new GeradorBabuinosOeste(corda);
         geradorLeste.start();
         geradorOeste.start();
 
@@ -143,6 +193,6 @@ public class Babuinos {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("Fim da simulação3");
+        System.out.println("Fim da simulacao!");
     }
 }
