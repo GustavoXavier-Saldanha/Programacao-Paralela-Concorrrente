@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1719873450 source:d:\gust-faculdade\progparalelaconcorrente\exercícios c\laboratorios\recuperacao\questao-11\main.c
+	<stdio.h>
+	<stdlib.h>
+	<pthread.h>
+

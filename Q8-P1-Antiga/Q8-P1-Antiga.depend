@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1714411576 source:d:\gust-faculdade\progparalelaconcorrente\q8-p1-antiga\main.c
+	<stdio.h>
+	<pthread.h>
+

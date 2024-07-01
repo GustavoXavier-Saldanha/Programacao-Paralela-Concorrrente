@@ -1,57 +1,47 @@
 #include <stdio.h>
 #include <pthread.h>
-#include <semaphore.h>
 
-sem_t semA, semF, semE;
+pthread_barrier_t barrier1, barrier2;
 
-void *threadC() {
-    printf("C");
-    sem_post(&semA);
-    pthread_exit(NULL);
-}
-
-void *threadA() {
-    sem_wait(&semA);
-    printf("A");
-    sem_post(&semF);
-    pthread_exit(NULL);
-}
-
-void *threadF() {
-    sem_wait(&semF);
-    printf("F");
-    sem_post(&semE);
-    pthread_exit(NULL);
-}
-
-void *threadE() {
-    sem_wait(&semE);
+void *thread_E(void *arg) {
+    pthread_barrier_wait(&barrier1);
     printf("E");
+    pthread_barrier_wait(&barrier2);
+    pthread_exit(NULL);
+}
+
+void *thread_R(void *arg) {
+    pthread_barrier_wait(&barrier1);
+    printf("R");
+    pthread_barrier_wait(&barrier2);
+    pthread_exit(NULL);
+}
+
+void *thread_O(void *arg) {
+    pthread_barrier_wait(&barrier1);
+    printf("O");
+    pthread_barrier_wait(&barrier2);
     pthread_exit(NULL);
 }
 
 int main() {
-    pthread_t tidC, tidA, tidF, tidE;
+    pthread_t tid_E, tid_R, tid_O;
 
-    sem_init(&semA, 0, 0);
-    sem_init(&semF, 0, 0);
-    sem_init(&semE, 0, 0);
+    pthread_barrier_init(&barrier1, NULL, 3);
+    pthread_barrier_init(&barrier2, NULL, 3);
 
-    pthread_create(&tidC, NULL, threadC, NULL);
-    pthread_create(&tidA, NULL, threadA, NULL);
-    pthread_create(&tidF, NULL, threadF, NULL);
-    pthread_create(&tidE, NULL, threadE, NULL);
+    pthread_create(&tid_E, NULL, thread_E, NULL);
+    pthread_create(&tid_R, NULL, thread_R, NULL);
+    pthread_create(&tid_O, NULL, thread_O, NULL);
 
-    pthread_join(tidC, NULL);
-    pthread_join(tidA, NULL);
-    pthread_join(tidF, NULL);
-    pthread_join(tidE, NULL);
+    pthread_join(tid_E, NULL);
+    pthread_join(tid_R, NULL);
+    pthread_join(tid_O, NULL);
 
     printf("\n");
 
-    sem_destroy(&semA);
-    sem_destroy(&semF);
-    sem_destroy(&semE);
+    pthread_barrier_destroy(&barrier1);
+    pthread_barrier_destroy(&barrier2);
 
     return 0;
 }
