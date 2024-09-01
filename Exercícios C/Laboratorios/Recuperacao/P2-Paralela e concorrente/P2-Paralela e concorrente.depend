@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1725049097 source:d:\gust-faculdade\progparalelaconcorrente\exercícios c\laboratorios\recuperacao\p2-paralela e concorrente\main.c
+	<stdio.h>
+	<stdlib.h>
+	<omp.h>
+
