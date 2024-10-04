@@ -1,0 +1,78 @@
+1- Considere o seguinte trecho de c ´odigo:1
+for(int i = 0; i < MAX; i ++)
+sum+=i;
+
+Desenvolva uma f ´ormula de distribuir as tarefas entrepnodos de processamento, considerando quecada nodo de processamentotter ´a:
+	•my_min;
+	•my_max;
+
+
+P = nods de processamento
+t = indice nodo
+max = numero de tasks
+
+taskPorNode = max / p
+4
+my_min = taskPorNode * t
+my_max = t * taskPorNode + taskPorNode - 1
+
+for(i = mymin; i < mymax; i++){
+...
+
+
+
+2- Considere o seguinte trecho de c ´ódigo:
+
+	for(int i = 0; i < MAX; i++){
+	x  =  Compute_value ( i );
+	sum+=x ;
+	}
+
+Suponha que a função Compute_value(i) tenha  um tempo de processamento linearmente maior para valores maiores de i, ou seja, o tempo de Compute_value (0) < Compute_value (1)< Compute_value (2) < ...Compute_value(MAX)
+
+Desenvolva uma estrat ´egia para paralelizar esse c ´odigo.
+
+R: Dividir o valor máximo de tarefas entre as threads disponíveis, mas de modo que cada thread receba a quantidade de tarefas proporcionais ao tempo de processamento esperado, fazendo com  que o tempo de processamento de cada thread seja balanceado. 
+
+A soluçao que torna isso possível seria uma fila de tarefas, que está disponível para todas as threads. Conforme cada thread termina de concluir o processo atual, ela pega mais uma das tarefas pendentes para serem processadas. De alguma forma as tarefas que estiverem sendo processádas, ou já foram, devem ser diluidas da base disponível.
+
+Esse processo gera um equilíbrio entre o trabalho de processamento de cada thread, tentando exigir de forma iqualitária de cada uma.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
